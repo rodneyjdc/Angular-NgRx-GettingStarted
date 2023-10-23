@@ -1,54 +1,34 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-
-import { Subscription } from 'rxjs';
-
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Product } from '../product';
-import { ProductService } from '../product.service';
 
 @Component({
   selector: 'pm-product-list',
   templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.css']
+  styleUrls: ['./product-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductListComponent implements OnInit, OnDestroy {
+export class ProductListComponent {
   pageTitle = 'Products';
-  errorMessage: string;
 
-  displayCode: boolean;
+  @Input() products: Product[];
+  @Input() selectedProduct: Product;
+  @Input() displayCode: boolean;
+  @Input() errorMessage: string;
 
-  products: Product[];
+  @Output() displayCodeChanged = new EventEmitter();
+  @Output() initiliazeNewProduct = new EventEmitter();
+  @Output() productWasSelected = new EventEmitter();
 
-  // Used to highlight the selected product in the list
-  selectedProduct: Product | null;
-  sub: Subscription;
-
-  constructor(private productService: ProductService) { }
-
-  ngOnInit(): void {
-    this.sub = this.productService.selectedProductChanges$.subscribe(
-      currentProduct => this.selectedProduct = currentProduct
-    );
-
-    this.productService.getProducts().subscribe({
-      next: (products: Product[]) => this.products = products,
-      error: err => this.errorMessage = err
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
+  newProduct(): void {
+    this.initiliazeNewProduct.emit();
   }
 
   checkChanged(): void {
-    this.displayCode = !this.displayCode;
-  }
-
-  newProduct(): void {
-    this.productService.changeSelectedProduct(this.productService.newProduct());
+    this.displayCodeChanged.emit();
   }
 
   productSelected(product: Product): void {
-    this.productService.changeSelectedProduct(product);
+    this.productWasSelected.emit(product);
   }
 
 }
